@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrBo6's Heroscape Army Builder</title>
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .page-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+		.badge.ordermarker { /* .bread and butter */
+			background-color: #fff8d0; /* soft, muted yellow */
+			color: #f57f17;            /* strong amber-orange for contrast */
+            margin-right: 2px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+        .container {
+            display: flex;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            flex: 1;
+        }
+        .left-panel {
+            flex: 1;
+            padding: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-right: 1px solid #eee;
+        }
+        .right-panel {
+            flex: 1;
+            padding: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .unit-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .unit-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .unit-item:hover {
+            background-color: #f0f0f0;
+        }
+        .unit-item.selected {
+            background-color: #e0f7fa;
+            border-color: #00bcd4;
+        }
+        .unit-count {
+            display: inline-block;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #2196f3;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+        }
+        .search-filter {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            transition: max-height 0.3s ease-out, margin-bottom 0.3s ease-out;
+            overflow: hidden;
+        }
+        .search-filter input, .search-filter select {
+            margin: 5px 0;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .unit-detail {
+            display: flex;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            gap: 15px;
+        }
+        .unit-image {
+            width: 120px;
+            height: 160px;
+            flex-shrink: 0;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            cursor: pointer;
+        }
+        .unit-image:hover::after {
+            content: '🔍';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .unit-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .unit-detail h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .unit-name {
+            display: flex;
+            align-items: center;
+        }
+        .custom-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: gold;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .unit-detail .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .unit-detail .quantity-value {
+            font-size: 16px;
+            width: 30px;
+            text-align: center;
+        }
+        .unit-detail .quantity-btn {
+            background-color: #e0e0e0;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .unit-detail .quantity-btn:hover {
+            background-color: #bdbdbd;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            margin-right: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #e0e0e0;
+            border-radius: 12px;
+            text-transform: capitalize;
+        }
+		.badge.ordermarker.Niche {
+			background-color: #e6e6fa;
+			color: #6a5acd;
+		}
+		.badge.ordermarker.Clean-Up {
+			background-color: #efebe9; /* light brown */
+			color: #6d4c41;            /* dark brown */
+		}
+		.badge.ordermarker.Shark {
+			background-color: #ffebee; /* light red */
+			color: #c62828;            /* strong red */
+		}
+		.badge.ordermarker.Menacer {
+			background-color: #f3e5f5; /* light purple */
+			color: #6a1b9a;            /* dark purple */
+		}
+		.badge.ordermarker.Defender {
+			background-color: #e8f5e9; /* light green */
+			color: #2e7d32;            /* darker green */
+		}
+		.badge.ordermarker.Cheerleader {
+			background-color: #e3f2fd; /* light blue */
+			color: #1565c0;            /* strong blue */
+		}		
+        .badge.unique {
+            background-color: #ffd54f;
+        }
+        .badge.common {
+            background-color: #80cbc4;
+        }
+        .badge.uncommon {
+            background-color: #b39ddb;
+        }
+        .badge.Hero {
+            background-color: #a5d6a7;
+            color: #1b5e20;
+        }
+        .badge.Squad {
+            background-color: #90caf9;
+            color: #0d47a1;
+        }
+        .points-badge {
+            background-color: #e0e0e0;
+            color: #424242;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+		.stats-grid .stat-box:nth-child(4) {
+			grid-column: 1 / 2;
+		}		
+        .stat-box {
+            text-align: center;
+            padding: 6px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        .stat-box .value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .stat-box .label {
+            font-size: 10px;
+            color: #666;
+        }
+        .special-powers {
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .special-power {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .special-power:last-child {
+            border-bottom: none;
+        }
+        .special-power h4 {
+            margin: 0 0 5px 0;
+        }
+        .synergies {
+            margin-top: 10px;
+            font-size: 0.9em;
+            background-color: #f0f8ff;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .synergies h4 {
+            margin: 0 0 5px 0;
+            color: #0d47a1;
+        }
+        .synergies-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 5px 0;
+        }
+        .synergies-list li {
+            position: relative;
+            padding: 3px 5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .synergies-list li:hover {
+            background-color: #e3f2fd;
+        }
+        .synergy-name {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .synergy-points {
+            margin-left: 4px;
+            color: #666;
+            font-size: 11px;
+        }
+        .synergy-name .custom-indicator {
+            width: 8px;
+            height: 8px;
+        }
+        .synergy-add-btn {
+            margin-left: 8px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .synergy-add-btn:hover {
+            background-color: #388e3c;
+        }
+        .synergy-add-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .buttons-container {
+            margin: 8px 0;
+        }
+        /* Hide buttons-toggle by default in desktop view */
+        .buttons-toggle {
+            display: none;
+        }
+        /* Show action buttons by default in desktop view */
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .left-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .right-buttons {
+            display: flex;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        button:hover {
+            background-color: #0b7dda;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .selected-count {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        #loadingMessage {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+        }
+        #errorMessage {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .total-points {
+            background-color: #2196f3;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .availability {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .unit-meta {
+            font-size: 11px;
+            color: #666;
+        }
+        .file-input-container {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        .file-input-container input[type="file"] {
+            display: none;
+        }
+        .file-input-container label {
+            padding: 8px 15px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .file-input-container span {
+            font-size: 14px;
+            color: #666;
+        }
+        .quantity-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #2196f3;
+            color: white;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Modal/Lightbox Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            overflow: auto;
+        }
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            max-width: 80%;
+            max-height: 80%;
+            animation: zoom 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        @keyframes zoom {
+            from {transform: scale(0.1)}
+            to {transform: scale(1)}
+        }
+        .modal-image {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 80vh;
+            margin: 0 auto;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1010;
+        }
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1010;
+        }
+        .modal-nav:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-prev {
+            left: 20px;
+        }
+        .modal-next {
+            right: 20px;
+        }
+        .modal-title {
+            color: white;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 16px;
+            padding: 0 60px;
+        }
+        .modal-counter {
+            color: white;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        /* Collapse/expand styles */
+        .unit-details-toggle {
+            background-color: transparent;
+            border: none;
+            color: #2196f3;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            margin-left: auto;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .unit-details-toggle:hover {
+            background-color: #e3f2fd;
+        }
+        .unit-details-toggle:focus {
+            outline: none;
+        }
+        .unit-details-toggle .icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 5px;
+            position: relative;
+        }
+        .unit-details-toggle .icon::before,
+        .unit-details-toggle .icon::after {
+            content: '';
+            position: absolute;
+            background-color: currentColor;
+            transition: transform 0.3s;
+        }
+        .unit-details-toggle .icon::before {
+            top: 6px;
+            left: 0;
+            width: 14px;
+            height: 2px;
+        }
+        .unit-details-toggle .icon::after {
+            top: 0;
+            left: 6px;
+            width: 2px;
+            height: 14px;
+        }
+        .unit-details-toggle.collapsed .icon::after {
+            transform: rotate(90deg);
+        }
+        .unit-details {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            max-height: 1000px;
+        }
+        .unit-details.collapsed {
+            max-height: 0;
+        }
+        
+        /* NEW STYLES FOR FILTER TOGGLE */
+        .filter-toggle {
+            display: none;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .filter-toggle .icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 5px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .filter-toggle .icon::before,
+        .filter-toggle .icon::after {
+            content: '';
+            position: absolute;
+            background-color: white;
+            transition: transform 0.3s;
+        }
+        
+        .filter-toggle .icon::before {
+            top: 6px;
+            left: 0;
+            width: 14px;
+            height: 2px;
+        }
+        
+        .filter-toggle .icon::after {
+            top: 0;
+            left: 6px;
+            width: 2px;
+            height: 14px;
+        }
+        
+        .filter-toggle.collapsed .icon::after {
+            transform: rotate(90deg);
+        }
+        
+        .search-filter.collapsed {
+            display: none;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        /* RESPONSIVE STYLES */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            
+            .container {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                max-height: none;
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .left-panel {
+                border-right: none;
+                /* Thick line between unit list and selected units */
+                border-bottom: 5px solid #2196f3;
+                padding-bottom: 20px;
+                margin-bottom: 15px;
+            }
+            
+            /* Make filter toggle visible */
+            .filter-toggle {
+                display: block;
+                margin-bottom: 10px;
+            }
+            
+            /* Show button toggle in mobile view */
+            .buttons-toggle {
+                display: block;
+                background-color: #2196f3;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 12px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                width: 100%;
+                text-align: left;
+                font-weight: bold;
+            }
+            
+            .buttons-toggle .icon {
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                margin-right: 5px;
+                position: relative;
+                transition: transform 0.3s;
+            }
+            
+            .buttons-toggle .icon::before,
+            .buttons-toggle .icon::after {
+                content: '';
+                position: absolute;
+                background-color: white;
+                transition: transform 0.3s;
+            }
+            
+            .buttons-toggle .icon::before {
+                top: 6px;
+                left: 0;
+                width: 14px;
+                height: 2px;
+            }
+            
+            .buttons-toggle .icon::after {
+                top: 0;
+                left: 6px;
+                width: 2px;
+                height: 14px;
+            }
+            
+            .buttons-toggle.collapsed .icon::after {
+                transform: rotate(90deg);
+            }
+            
+            /* In mobile view, hide buttons when collapsed */
+            .buttons.collapsed {
+                display: none;
+            }
+            
+            /* Fix for filter opening issue - use display instead of max-height */
+            .search-filter.collapsed {
+                display: none;
+            }
+            
+            /* Stats in two lines for mobile with smaller gap */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3px;
+                margin: 8px 0;
+            }
+            
+            /* Make stat boxes more compact */
+            .stat-box {
+                padding: 4px;
+            }
+            
+            .stat-box .value {
+                font-size: 14px;
+            }
+            
+            .stat-box .label {
+                font-size: 9px;
+            }
+            
+            .special-power {
+                margin-bottom: 6px;
+                padding-bottom: 6px;
+            }
+            
+            .special-power h4 {
+                font-size: 12px;
+                margin: 0 0 3px 0;
+            }
+            
+            .special-power p {
+                font-size: 11px;
+                margin: 0;
+                line-height: 1.3;
+            }
+            
+            /* Condense synergies section */
+            .synergies {
+                padding: 6px;
+                margin-top: 6px;
+            }
+            
+            .synergies h4 {
+                font-size: 12px;
+                margin: 0 0 3px 0;
+            }
+            
+            .synergies-list li {
+                padding: 2px 3px;
+                margin-bottom: 2px;
+                font-size: 11px;
+            }
+            
+            .unit-detail {
+                flex-direction: column;
+                padding: 8px; /* Reduced padding */
+                margin-bottom: 8px; /* Reduced margin */
+            }
+            
+            /* Condense the height of selected collapsed units */
+            .unit-detail h3 {
+                font-size: 14px;
+                padding-bottom: 6px;
+                margin-top: 0;
+                margin-bottom: 6px;
+            }
+            
+            .unit-detail .quantity-controls {
+                gap: 2px;
+            }
+            
+            .unit-detail .quantity-btn {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .unit-meta {
+                margin: 2px 0;
+                line-height: 1.3;
+            }
+            
+            .unit-image {
+                display: none; /* Hide images on mobile */
+            }
+            
+            /* Hide "Selected Units" title */
+            .right-panel h2 {
+                display: none;
+            }
+            
+            /* Mobile buttons layout */
+            .buttons {
+                flex-direction: column;
+                gap: 5px;
+                margin: 8px 0;
+            }
+            
+            .left-buttons, .right-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            /* Make all buttons less tall and with smaller text */
+            .left-buttons, .right-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+            
+            button {
+                padding: 6px 8px; /* Reduced padding */
+                font-size: 12px; /* Smaller font */
+                width: 100%;
+                margin: 0;
+                text-align: center;
+            }
+            
+            /* Fix synergy add button width */
+            .synergy-add-btn {
+                width: auto;
+                min-width: 24px;
+                max-width: 24px;
+                padding: 2px;
+                margin-left: 5px;
+                font-size: 10px;
+            }
+            
+            .total-points {
+                font-size: 14px;
+                padding: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .unit-count {
+                width: 18px;
+                height: 18px;
+                line-height: 18px;
+                font-size: 9px;
+            }
+            
+            .modal-nav {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .modal-prev {
+                left: 5px;
+            }
+            
+            .modal-next {
+                right: 5px;
+            }
+            
+            /* More compact badge display */
+            .badge {
+                padding: 2px 6px;
+                font-size: 10px;
+                margin-right: 3px;
+            }
+			
+			.tooltip-wrapper {
+				position: relative;
+				cursor: pointer;
+			}
+
+			.tooltip-text {
+				visibility: hidden;
+				opacity: 0;
+				position: absolute;
+				z-index: 100;
+				bottom: 125%; /* or top: 125% depending on space */
+				left: 50%;
+				transform: translateX(-50%);
+				background-color: #333;
+				color: white;
+				padding: 5px 8px;
+				border-radius: 4px;
+				font-size: 11px;
+				white-space: nowrap;
+				transition: opacity 0.2s;
+				pointer-events: none;
+			}
+
+			/* Show on hover (desktop) */
+			.tooltip-wrapper:hover .tooltip-text {
+				visibility: visible;
+				opacity: 1;
+			}
+
+			/* Show on tap (mobile): toggle via JS */
+			.tooltip-wrapper.show-tooltip .tooltip-text {
+				visibility: visible;
+				opacity: 1;
+				pointer-events: auto;
+			}
+
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <h1 class="page-title">DrBo6's Heroscape Army Builder</h1>
+               
+        <div class="container">
+		Replace hsdraft.htm with the <a href="http://waronline.net/heroscape/draft/hsdraft.zip">The Surprisingly Tart HeroScape Draft Wizard</a>
+	</div>
+    </div>
+    </script>
+</body>
+</html>
