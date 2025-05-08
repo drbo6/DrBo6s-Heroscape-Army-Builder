@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrBo6's Heroscape Army Builder</title>
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .page-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+		.badge.ordermarker { /* .bread and butter */
+			background-color: #fff8d0; /* soft, muted yellow */
+			color: #f57f17;            /* strong amber-orange for contrast */
+            margin-right: 2px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+        .container {
+            display: flex;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            flex: 1;
+        }
+        .left-panel {
+            flex: 1;
+            padding: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-right: 1px solid #eee;
+        }
+        .right-panel {
+            flex: 1;
+            padding: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .unit-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .unit-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .unit-item:hover {
+            background-color: #f0f0f0;
+        }
+        .unit-item.selected {
+            background-color: #e0f7fa;
+            border-color: #00bcd4;
+        }
+        .unit-count {
+            display: inline-block;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #2196f3;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+        }
+        .search-filter {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            transition: max-height 0.3s ease-out, margin-bottom 0.3s ease-out;
+            overflow: hidden;
+        }
+        .search-filter input, .search-filter select {
+            margin: 5px 0;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .unit-detail {
+            display: flex;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            gap: 15px;
+        }
+        .unit-image {
+            width: 120px;
+            height: 160px;
+            flex-shrink: 0;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            cursor: pointer;
+        }
+        .unit-image:hover::after {
+            content: '🔍';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .unit-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .unit-detail h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .unit-name {
+            display: flex;
+            align-items: center;
+        }
+        .custom-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: gold;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .unit-detail .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .unit-detail .quantity-value {
+            font-size: 16px;
+            width: 30px;
+            text-align: center;
+        }
+        .unit-detail .quantity-btn {
+            background-color: #e0e0e0;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .unit-detail .quantity-btn:hover {
+            background-color: #bdbdbd;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            margin-right: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #e0e0e0;
+            border-radius: 12px;
+            text-transform: capitalize;
+        }
+		.badge.ordermarker.Niche {
+			background-color: #e6e6fa;
+			color: #6a5acd;
+		}
+		.badge.ordermarker.Clean-Up {
+			background-color: #efebe9; /* light brown */
+			color: #6d4c41;            /* dark brown */
+		}
+		.badge.ordermarker.Shark {
+			background-color: #ffebee; /* light red */
+			color: #c62828;            /* strong red */
+		}
+		.badge.ordermarker.Menacer {
+			background-color: #f3e5f5; /* light purple */
+			color: #6a1b9a;            /* dark purple */
+		}
+		.badge.ordermarker.Defender {
+			background-color: #e8f5e9; /* light green */
+			color: #2e7d32;            /* darker green */
+		}
+		.badge.ordermarker.Cheerleader {
+			background-color: #e3f2fd; /* light blue */
+			color: #1565c0;            /* strong blue */
+		}		
+        .badge.unique {
+            background-color: #ffd54f;
+        }
+        .badge.common {
+            background-color: #80cbc4;
+        }
+        .badge.uncommon {
+            background-color: #b39ddb;
+        }
+        .badge.Hero {
+            background-color: #a5d6a7;
+            color: #1b5e20;
+        }
+        .badge.Squad {
+            background-color: #90caf9;
+            color: #0d47a1;
+        }
+        .points-badge {
+            background-color: #e0e0e0;
+            color: #424242;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+		.stats-grid .stat-box:nth-child(4) {
+			grid-column: 1 / 2;
+		}		
+        .stat-box {
+            text-align: center;
+            padding: 6px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        .stat-box .value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .stat-box .label {
+            font-size: 10px;
+            color: #666;
+        }
+        .special-powers {
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .special-power {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .special-power:last-child {
+            border-bottom: none;
+        }
+        .special-power h4 {
+            margin: 0 0 5px 0;
+        }
+        .synergies {
+            margin-top: 10px;
+            font-size: 0.9em;
+            background-color: #f0f8ff;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .synergies h4 {
+            margin: 0 0 5px 0;
+            color: #0d47a1;
+        }
+        .synergies-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 5px 0;
+        }
+        .synergies-list li {
+            position: relative;
+            padding: 3px 5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .synergies-list li:hover {
+            background-color: #e3f2fd;
+        }
+        .synergy-name {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .synergy-points {
+            margin-left: 4px;
+            color: #666;
+            font-size: 11px;
+        }
+        .synergy-name .custom-indicator {
+            width: 8px;
+            height: 8px;
+        }
+        .synergy-add-btn {
+            margin-left: 8px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .synergy-add-btn:hover {
+            background-color: #388e3c;
+        }
+        .synergy-add-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .buttons-container {
+            margin: 8px 0;
+        }
+        /* Hide buttons-toggle by default in desktop view */
+        .buttons-toggle {
+            display: none;
+        }
+        /* Show action buttons by default in desktop view */
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .left-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .right-buttons {
+            display: flex;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        button:hover {
+            background-color: #0b7dda;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .selected-count {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        #loadingMessage {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+        }
+        #errorMessage {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .total-points {
+            background-color: #2196f3;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .availability {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .unit-meta {
+            font-size: 11px;
+            color: #666;
+        }
+        .file-input-container {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        .file-input-container input[type="file"] {
+            display: none;
+        }
+        .file-input-container label {
+            padding: 8px 15px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .file-input-container span {
+            font-size: 14px;
+            color: #666;
+        }
+        .quantity-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #2196f3;
+            color: white;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Modal/Lightbox Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            overflow: auto;
+        }
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            max-width: 80%;
+            max-height: 80%;
+            animation: zoom 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        @keyframes zoom {
+            from {transform: scale(0.1)}
+            to {transform: scale(1)}
+        }
+        .modal-image {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 80vh;
+            margin: 0 auto;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1010;
+        }
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1010;
+        }
+        .modal-nav:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-prev {
+            left: 20px;
+        }
+        .modal-next {
+            right: 20px;
+        }
+        .modal-title {
+            color: white;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 16px;
+            padding: 0 60px;
+        }
+        .modal-counter {
+            color: white;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        /* Collapse/expand styles */
+        .unit-details-toggle {
+            background-color: transparent;
+            border: none;
+            color: #2196f3;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            margin-left: auto;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .unit-details-toggle:hover {
+            background-color: #e3f2fd;
+        }
+        .unit-details-toggle:focus {
+            outline: none;
+        }
+        .unit-details-toggle .icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 5px;
+            position: relative;
+        }
+        .unit-details-toggle .icon::before,
+        .unit-details-toggle .icon::after {
+            content: '';
+            position: absolute;
+            background-color: currentColor;
+            transition: transform 0.3s;
+        }
+        .unit-details-toggle .icon::before {
+            top: 6px;
+            left: 0;
+            width: 14px;
+            height: 2px;
+        }
+        .unit-details-toggle .icon::after {
+            top: 0;
+            left: 6px;
+            width: 2px;
+            height: 14px;
+        }
+        .unit-details-toggle.collapsed .icon::after {
+            transform: rotate(90deg);
+        }
+        .unit-details {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            max-height: 1000px;
+        }
+        .unit-details.collapsed {
+            max-height: 0;
+        }
+        
+        /* NEW STYLES FOR FILTER TOGGLE */
+        .filter-toggle {
+            display: none;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .filter-toggle .icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 5px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .filter-toggle .icon::before,
+        .filter-toggle .icon::after {
+            content: '';
+            position: absolute;
+            background-color: white;
+            transition: transform 0.3s;
+        }
+        
+        .filter-toggle .icon::before {
+            top: 6px;
+            left: 0;
+            width: 14px;
+            height: 2px;
+        }
+        
+        .filter-toggle .icon::after {
+            top: 0;
+            left: 6px;
+            width: 2px;
+            height: 14px;
+        }
+        
+        .filter-toggle.collapsed .icon::after {
+            transform: rotate(90deg);
+        }
+        
+        .search-filter.collapsed {
+            display: none;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        /* RESPONSIVE STYLES */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            
+            .container {
+                flex-direction: column;
+            }
+            
+            .left-panel, .right-panel {
+                max-height: none;
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .left-panel {
+                border-right: none;
+                /* Thick line between unit list and selected units */
+                border-bottom: 5px solid #2196f3;
+                padding-bottom: 20px;
+                margin-bottom: 15px;
+            }
+            
+            /* Make filter toggle visible */
+            .filter-toggle {
+                display: block;
+                margin-bottom: 10px;
+            }
+            
+            /* Show button toggle in mobile view */
+            .buttons-toggle {
+                display: block;
+                background-color: #2196f3;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 12px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                width: 100%;
+                text-align: left;
+                font-weight: bold;
+            }
+            
+            .buttons-toggle .icon {
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                margin-right: 5px;
+                position: relative;
+                transition: transform 0.3s;
+            }
+            
+            .buttons-toggle .icon::before,
+            .buttons-toggle .icon::after {
+                content: '';
+                position: absolute;
+                background-color: white;
+                transition: transform 0.3s;
+            }
+            
+            .buttons-toggle .icon::before {
+                top: 6px;
+                left: 0;
+                width: 14px;
+                height: 2px;
+            }
+            
+            .buttons-toggle .icon::after {
+                top: 0;
+                left: 6px;
+                width: 2px;
+                height: 14px;
+            }
+            
+            .buttons-toggle.collapsed .icon::after {
+                transform: rotate(90deg);
+            }
+            
+            /* In mobile view, hide buttons when collapsed */
+            .buttons.collapsed {
+                display: none;
+            }
+            
+            /* Fix for filter opening issue - use display instead of max-height */
+            .search-filter.collapsed {
+                display: none;
+            }
+            
+            /* Stats in two lines for mobile with smaller gap */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3px;
+                margin: 8px 0;
+            }
+            
+            /* Make stat boxes more compact */
+            .stat-box {
+                padding: 4px;
+            }
+            
+            .stat-box .value {
+                font-size: 14px;
+            }
+            
+            .stat-box .label {
+                font-size: 9px;
+            }
+            
+            .special-power {
+                margin-bottom: 6px;
+                padding-bottom: 6px;
+            }
+            
+            .special-power h4 {
+                font-size: 12px;
+                margin: 0 0 3px 0;
+            }
+            
+            .special-power p {
+                font-size: 11px;
+                margin: 0;
+                line-height: 1.3;
+            }
+            
+            /* Condense synergies section */
+            .synergies {
+                padding: 6px;
+                margin-top: 6px;
+            }
+            
+            .synergies h4 {
+                font-size: 12px;
+                margin: 0 0 3px 0;
+            }
+            
+            .synergies-list li {
+                padding: 2px 3px;
+                margin-bottom: 2px;
+                font-size: 11px;
+            }
+            
+            .unit-detail {
+                flex-direction: column;
+                padding: 8px; /* Reduced padding */
+                margin-bottom: 8px; /* Reduced margin */
+            }
+            
+            /* Condense the height of selected collapsed units */
+            .unit-detail h3 {
+                font-size: 14px;
+                padding-bottom: 6px;
+                margin-top: 0;
+                margin-bottom: 6px;
+            }
+            
+            .unit-detail .quantity-controls {
+                gap: 2px;
+            }
+            
+            .unit-detail .quantity-btn {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .unit-meta {
+                margin: 2px 0;
+                line-height: 1.3;
+            }
+            
+            .unit-image {
+                display: none; /* Hide images on mobile */
+            }
+            
+            /* Hide "Selected Units" title */
+            .right-panel h2 {
+                display: none;
+            }
+            
+            /* Mobile buttons layout */
+            .buttons {
+                flex-direction: column;
+                gap: 5px;
+                margin: 8px 0;
+            }
+            
+            .left-buttons, .right-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            /* Make all buttons less tall and with smaller text */
+            .left-buttons, .right-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+            
+            button {
+                padding: 6px 8px; /* Reduced padding */
+                font-size: 12px; /* Smaller font */
+                width: 100%;
+                margin: 0;
+                text-align: center;
+            }
+            
+            /* Fix synergy add button width */
+            .synergy-add-btn {
+                width: auto;
+                min-width: 24px;
+                max-width: 24px;
+                padding: 2px;
+                margin-left: 5px;
+                font-size: 10px;
+            }
+            
+            .total-points {
+                font-size: 14px;
+                padding: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .unit-count {
+                width: 18px;
+                height: 18px;
+                line-height: 18px;
+                font-size: 9px;
+            }
+            
+            .modal-nav {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .modal-prev {
+                left: 5px;
+            }
+            
+            .modal-next {
+                right: 5px;
+            }
+            
+            /* More compact badge display */
+            .badge {
+                padding: 2px 6px;
+                font-size: 10px;
+                margin-right: 3px;
+            }
+			
+			.tooltip-wrapper {
+				position: relative;
+				cursor: pointer;
+			}
+
+			.tooltip-text {
+				visibility: hidden;
+				opacity: 0;
+				position: absolute;
+				z-index: 100;
+				bottom: 125%; /* or top: 125% depending on space */
+				left: 50%;
+				transform: translateX(-50%);
+				background-color: #333;
+				color: white;
+				padding: 5px 8px;
+				border-radius: 4px;
+				font-size: 11px;
+				white-space: nowrap;
+				transition: opacity 0.2s;
+				pointer-events: none;
+			}
+
+			/* Show on hover (desktop) */
+			.tooltip-wrapper:hover .tooltip-text {
+				visibility: visible;
+				opacity: 1;
+			}
+
+			/* Show on tap (mobile): toggle via JS */
+			.tooltip-wrapper.show-tooltip .tooltip-text {
+				visibility: visible;
+				opacity: 1;
+				pointer-events: auto;
+			}
+
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <h1 class="page-title">DrBo6's Heroscape Army Builder</h1>
+        
+        <div id="errorMessage"></div>
+        
+        <div class="total-points" id="totalPoints">
+            <span>Total Army Points: 0</span>
+            <span id="unitCountDisplay">0 units selected</span>
+        </div>
+        
+        <div class="buttons-container">
+            <button id="buttonsToggle" class="buttons-toggle collapsed">
+                <span class="icon"></span> Show Actions
+            </button>
+            
+            <div class="buttons collapsed" id="buttonsContainer">
+                <div class="left-buttons">
+                    <button id="selectAll">Select All</button>
+                    <button id="deselectAll">Deselect All</button>
+                    <button id="resetFilters">Reset Filters</button>				
+                    <button id="exportSelection">Export</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button id="importSelection">Import</button>
+                </div>
+                <div class="right-buttons">
+                    <button id="autoDraftBtn" onclick="window.location.href='hsdraft.htm'">Auto-Draft</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="left-panel">
+                <button id="filterToggle" class="filter-toggle">
+                    <span class="icon"></span> Filter Units
+                </button>
+                
+                <div class="search-filter" id="searchFilter">                 
+                    <input type="text" id="searchInput" placeholder="Search by name...">
+                    
+                    <select id="sortBy">
+                        <option value="name">Sort by Name</option>					
+                        <option value="points">Sort by Points</option>
+                        <option value="move">Sort by Move</option>
+                        <option value="attack">Sort by Attack</option>
+                        <option value="defense">Sort by Defense</option>
+                        <option value="life">Sort by Life</option>
+                    </select>
+                    
+					<select id="orderMarkerFilter">
+						<option value="">All Order Marker Types</option>
+					</select>						
+
+					<select id="specialsFilter">
+						<option value="">All Abilities</option>
+					</select>	
+					
+                    <select id="typeFilter">
+                        <option value="">All Types</option>
+                    </select>
+                    
+                    <select id="personalityFilter">
+                        <option value="">All Personalities</option>
+                    </select>
+                    
+                    <select id="rarityFilter">
+                        <option value="">All Rarities</option>
+                        <option value="unique">Unique</option>
+                        <option value="common">Common</option>
+                        <option value="uncommon">Uncommon</option>
+                    </select>
+                    
+                    <select id="generalFilter">
+                        <option value="">All Generals</option>
+                    </select>
+                    
+                    <select id="waveFilter">
+                        <option value="">All Waves</option>
+                    </select>				
+                </div>
+                
+                <div id="loadingMessage">Loading unit data...</div>
+                
+                <ul class="unit-list" id="unitList">
+                    <!-- Units will be populated here via JavaScript -->
+                </ul>
+            </div>
+            
+            <div class="right-panel">
+                <h2>Selected Units</h2>
+                <div id="selectedUnits">
+                    <!-- Selected units will be displayed here -->
+                    <p id="noSelectionMessage">No units selected. Click on units in the list to select them.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Image Modal/Lightbox -->
+    <div id="imageModal" class="modal">
+        <span class="modal-close" id="modalClose">&times;</span>
+        <div class="modal-nav modal-prev" id="modalPrev">&#10094;</div>
+        <div class="modal-nav modal-next" id="modalNext">&#10095;</div>
+        <div class="modal-content">
+            <img id="modalImage" class="modal-image">
+            <div id="modalTitle" class="modal-title"></div>
+            <div id="modalCounter" class="modal-counter"></div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to find a unit by name
+        function getUnit(name) {
+            for (let i = 0; i < window.unit.length; i++) {
+                if (window.unit[i].unitname === name) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        
+        // Global variables
+        const unitData = [];
+        let selectedUnits = {}; // Changed to object to track quantity: { unitId: quantity }
+        let bidirectionalSynergyMap = new Map(); // Map to track bidirectional synergies
+
+		// Tooltips for the order marker badges
+		const markerTooltips = {
+			'shark': 'Lots of power and range but they have to keep moving or they die.',
+			'breadbutter': 'These units can be the core of a competitive army to build around.',
+			'defender': 'These are the units that you want to see targeted. They are great to put on glyphs.',
+			'menacer': 'Scary units with high power and defense that usually not have that many attacks.',
+			'niche': 'Useful in the right situations but also very risky to play.',
+			'cleanup': 'Units that excel at taking out the final enemies at the end of the game.',
+			'cheerleader': 'These units make others better and should be protected at all times.'
+		};		
+		
+        // Image carousel variables
+        let currentCarouselImages = [];
+        let currentImageIndex = 0;
+        
+        // DOM elements
+        const unitList = document.getElementById('unitList');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const selectedUnitsDiv = document.getElementById('selectedUnits');
+        const noSelectionMessage = document.getElementById('noSelectionMessage');
+        const totalPointsDisplay = document.getElementById('totalPoints').querySelector('span');
+        const unitCountDisplay = document.getElementById('unitCountDisplay');
+        const importFileInput = document.getElementById('importFile');
+        
+        // Modal elements
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalClose = document.getElementById('modalClose');
+        const modalPrev = document.getElementById('modalPrev');
+        const modalNext = document.getElementById('modalNext');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalCounter = document.getElementById('modalCounter');
+        
+        // Initialize filter elements
+        const generalFilter = document.getElementById('generalFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const personalityFilter = document.getElementById('personalityFilter');
+        const rarityFilter = document.getElementById('rarityFilter');
+        const waveFilter = document.getElementById('waveFilter');
+        const sortByFilter = document.getElementById('sortBy');
+        const searchInput = document.getElementById('searchInput');
+		const orderMarkerFilter = document.getElementById('orderMarkerFilter');
+		const specialsFilter = document.getElementById('specialsFilter');	
+        
+        // Filter toggle elements
+        const filterToggle = document.getElementById('filterToggle');
+        const searchFilter = document.getElementById('searchFilter');
+        
+        // Check if we're on a mobile device
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+        
+        // Toggle filter visibility for mobile
+        function toggleFilter() {
+            filterToggle.classList.toggle('collapsed');
+            searchFilter.classList.toggle('collapsed');
+        }
+        
+        // Format unit name to handle special cases
+        function formatUnitName(name) {
+            // Replace -SOTM with (SOTM)
+            let formattedName = name.replace(/-SOTM$/, ' (SOTM)').replace(/-Mounted$/, ' (Mounted)').replace(/-Unmounted$/, ' (Unmounted)');	
+            
+            // Check if name ends with -CUC
+            const isCustom = formattedName.endsWith('-CUC');
+            if (isCustom) {
+                // Remove -CUC suffix
+                formattedName = formattedName.replace('-CUC', '');
+            }
+            
+            return {
+                name: formattedName,
+                isCustom: isCustom
+            };
+        }
+        
+        // Build bidirectional synergy relationships
+        function buildBidirectionalSynergyMap() {
+            bidirectionalSynergyMap.clear();
+            
+            // First collect all direct synergies
+            unitData.forEach(unit => {
+                const synergies = new Set();
+                
+                if (unit.specials) {
+                    unit.specials.forEach(special => {
+                        if (special.synergies && special.synergies.length > 0) {
+                            special.synergies.forEach(synergy => {
+                                synergies.add(synergy);
+                            });
+                        }
+                    });
+                }
+                
+                if (synergies.size > 0) {
+                    bidirectionalSynergyMap.set(unit.name, Array.from(synergies));
+                }
+            });
+            
+            // Build a reverse map to capture bidirectional relationships
+            const reverseMap = new Map();
+            
+            unitData.forEach(unit => {
+                if (bidirectionalSynergyMap.has(unit.name)) {
+                    const synergies = bidirectionalSynergyMap.get(unit.name);
+                    
+                    synergies.forEach(synergyName => {
+                        const { name: formattedSynergyName } = formatUnitName(synergyName);
+                        
+                        // Skip self-references
+                        if (isMatchingUnit(unit, synergyName)) {
+                            return;
+                        }
+                        
+                        // Add reverse relationship
+                        if (!reverseMap.has(formattedSynergyName)) {
+                            reverseMap.set(formattedSynergyName, []);
+                        }
+                        reverseMap.get(formattedSynergyName).push(unit.originalName);
+                    });
+                }
+            });
+            
+            // Merge the reverse relationships into the bidirectional map
+            reverseMap.forEach((synergies, unitName) => {
+                if (!bidirectionalSynergyMap.has(unitName)) {
+                    bidirectionalSynergyMap.set(unitName, []);
+                }
+                
+                const existingSynergies = bidirectionalSynergyMap.get(unitName);
+                
+                synergies.forEach(synergy => {
+                    if (!existingSynergies.includes(synergy)) {
+                        existingSynergies.push(synergy);
+                    }
+                });
+            });
+        }
+        
+        // Convert the units.js and customs.js data format to our app's format
+        function processRawUnitData() {
+            // Check if the unit array exists in the global scope
+            if (typeof window.unit === 'undefined' || !Array.isArray(window.unit)) {
+                showError("Unit data not found or invalid format");
+                return false;
+            }
+            
+            // Clear any existing data
+            unitData.length = 0;
+            
+            try {
+                // Process each unit in the array
+                for (let i = 0; i < window.unit.length; i++) {
+                    const rawUnit = window.unit[i];
+                    
+                    // Skip empty or invalid entries
+                    if (!rawUnit || typeof rawUnit !== 'object' || !rawUnit.unitname) continue;
+                    
+                    // Process the name
+                    const { name, isCustom } = formatUnitName(rawUnit.unitname);
+                    const baseNameForDupes = name.replace(' (SOTM)', ''); // Remove SOTM for duplicate checking
+                    
+                    // Create a processed unit object
+                    const processedUnit = {
+                        id: i,
+                        name: name,
+                        originalName: rawUnit.unitname, // Store the original name for reference
+                        isCustom: isCustom,
+                        baseName: baseNameForDupes, // For handling duplicates
+                        points: rawUnit.basepoints || rawUnit.unitcost || 0,
+                        range: rawUnit.range || 1,
+                        rarity: rawUnit.unique || '',
+                        general: rawUnit.general || '',
+                        wave: rawUnit.wave || '',
+                        species: rawUnit.species || '',
+                        category: rawUnit.heroOrSquad || '',
+                        type: rawUnit.type || '',
+                        personality: rawUnit.personality || '',
+                        size: rawUnit.size || '',
+                        height: rawUnit.height || 0,
+                        life: rawUnit.life || 1,
+                        move: rawUnit.move || 0,
+                        attack: rawUnit.attack || 0,
+                        defense: rawUnit.defense || 0,
+                        numberAvailableInDraft: rawUnit.numberAvailableInDraft || 0,
+                        ordermarkers: rawUnit.ordermarkers || [],
+                        specials: []
+                    };
+                    
+                    // Process special abilities
+                    if (rawUnit.specials && Array.isArray(rawUnit.specials)) {
+                        for (let j = 0; j < rawUnit.specials.length; j++) {
+                            const special = rawUnit.specials[j];
+                            if (special && special.name) {
+                                processedUnit.specials.push({
+                                    name: special.name,
+                                    description: special.description || '',
+                                    synergies: special.synergies || []
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Always add the unit to our data array if available for draft
+                    if (processedUnit.numberAvailableInDraft > 0) {
+                        unitData.push(processedUnit);
+                    }
+                }
+                
+                // Build bidirectional synergy relationships
+                buildBidirectionalSynergyMap();
+                
+                return unitData.length > 0;
+            } catch (error) {
+                showError(`Error processing unit data: ${error.message}`);
+                console.error("Error processing unit data:", error);
+                return false;
+            }
+        }
+        
+        // Display error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            loadingMessage.style.display = 'none';
+        }
+        
+		// Function to reset all filters
+		function resetFilters() {
+			// Reset the value of each filter to its default value
+			searchInput.value = ''; // Clear the search input
+			
+			generalFilter.value = ''; // Reset general filter
+			typeFilter.value = ''; // Reset type filter
+			personalityFilter.value = ''; // Reset personality filter
+			rarityFilter.value = ''; // Reset rarity filter
+			waveFilter.value = ''; // Reset wave filter
+			sortByFilter.value = 'name'; // Default sorting by points
+			orderMarkerFilter.value = ''; // Reset order marker filter
+			specialsFilter.value = ''; // Reset specials filter
+
+			// Re-apply filters and sort the units after resetting
+			filterAndSortUnits();
+		}
+		
+        // Populate the unit list based on current filters
+        function populateUnitList(units) {
+            unitList.innerHTML = '';
+            
+            if (units.length === 0) {
+                const li = document.createElement('li');
+                li.className = 'unit-item';
+                li.textContent = 'No units match the current filters';
+                unitList.appendChild(li);
+                return;
+            }
+            
+            units.forEach(unit => {
+                const li = document.createElement('li');
+                li.className = 'unit-item';
+                
+                // Check if unit is selected and add appropriate class
+                if (selectedUnits[unit.id] && selectedUnits[unit.id] > 0) {
+                    li.classList.add('selected');
+                    
+                    // Add quantity indicator if more than one is selected
+                    if (selectedUnits[unit.id] > 1) {
+                        const countSpan = document.createElement('span');
+                        countSpan.className = 'unit-count';
+                        countSpan.textContent = selectedUnits[unit.id];
+                        li.appendChild(countSpan);
+                    }
+                }
+                
+                li.dataset.id = unit.id;
+                
+                // Create name with custom indicator if needed
+                let nameHtml = unit.name;
+                if (unit.isCustom) {
+                    nameHtml = `<span class="custom-indicator"></span>${unit.name}`;
+                }
+                
+                li.innerHTML = `
+                    <strong>${nameHtml}</strong> 
+					${unit.ordermarkers && unit.ordermarkers.length > 0 ? 
+						unit.ordermarkers.map(marker => {
+							const normalized = marker.toLowerCase().replace(/[^a-z0-9]/g, '');
+						    const markerTitle = markerTooltips[normalized] || '';
+							return `<span class="badge ordermarker ${marker}" title="${markerTitle}">${marker}</span>`;
+						}).join('') : ''}
+                    <!-- span class="badge ${unit.rarity}">${unit.rarity}</span -->
+                    <!-- span class="badge ${unit.category}">${unit.category}</span -->
+                    <span class="badge points-badge">${unit.points} pts</span>						
+                    <div class="availability">Available: ${unit.numberAvailableInDraft}</div>
+                `;
+                
+                li.addEventListener('click', () => toggleUnitSelection(li, unit));
+                
+                unitList.appendChild(li);
+            });
+        }
+        
+        // Update the filter dropdowns with available options
+		function updateFilterOptions() {
+			// Get unique values for each filter
+			const generals = [...new Set(unitData.map(unit => unit.general))].filter(Boolean).sort();
+			const types = [...new Set(unitData.map(unit => unit.type))].filter(Boolean).sort();
+			const personalities = [...new Set(unitData.map(unit => unit.personality))].filter(Boolean).sort();
+			const waves = [...new Set(unitData.map(unit => unit.wave))].filter(Boolean).sort();
+			const orderMarkers = [...new Set(unitData.map(unit => unit.ordermarkers?.[0]))].filter(Boolean).sort();
+			const specials = [...new Set(unitData.flatMap(unit => unit.specials?.map(special => special.name)))].filter(Boolean).sort();			
+
+			// Populate general filter
+			generals.forEach(general => {
+				const option = document.createElement('option');
+				option.value = general;
+				option.textContent = general;
+				generalFilter.appendChild(option);
+			});
+
+			// Populate type filter
+			types.forEach(type => {
+				const option = document.createElement('option');
+				option.value = type;
+				option.textContent = type;
+				typeFilter.appendChild(option);
+			});
+
+			// Populate personality filter
+			personalities.forEach(personality => {
+				const option = document.createElement('option');
+				option.value = personality;
+				option.textContent = personality;
+				personalityFilter.appendChild(option);
+			});
+
+			// Populate wave filter
+			waves.forEach(wave => {
+				const option = document.createElement('option');
+				option.value = wave;
+				option.textContent = wave;
+				waveFilter.appendChild(option);
+			});
+
+			// Populate order marker filter
+			orderMarkers.forEach(marker => {
+				const option = document.createElement('option');
+				option.value = marker;
+				option.textContent = marker;
+				orderMarkerFilter.appendChild(option);
+			});
+
+			// Populate specials filter
+			const normalizeSpecials = specials.map(special => special.replace(/\s\d+$/, '').toLowerCase());
+			const uniqueNormalizedSpecials = [...new Set(normalizeSpecials)].sort();			
+			uniqueNormalizedSpecials.forEach(special => {
+				const option = document.createElement('option');
+				option.value = special;
+				const capitalizedSpecial = special.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+				option.textContent = capitalizedSpecial;
+				specialsFilter.appendChild(option);
+			});
+		}
+
+				
+		function filterAndSortUnits() {
+			const searchText = searchInput.value.toLowerCase();
+			const generalValue = generalFilter.value;
+			const typeValue = typeFilter.value;
+			const personalityValue = personalityFilter.value;
+			const waveValue = waveFilter.value;
+			const rarityValue = rarityFilter.value;
+			const sortByValue = sortByFilter.value;
+			const orderMarkerValue = orderMarkerFilter.value;
+			const specialsValue = specialsFilter.value;
+
+			// Apply filters
+			const filteredUnits = unitData.filter(unit => {
+				const matchesSearch = unit.name.toLowerCase().includes(searchText);
+				const matchesGeneral = generalValue === '' || unit.general === generalValue;
+				const matchesType = typeValue === '' || unit.type === typeValue;
+				const matchesPersonality = personalityValue === '' || unit.personality === personalityValue;
+				const matchesWave = waveValue === '' || unit.wave === waveValue;
+				const matchesRarity = rarityValue === '' || unit.rarity === rarityValue;
+
+				let passesOrderMarkerFilter = true;
+				if (orderMarkerValue !== '') {
+					const normalize = str => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+					passesOrderMarkerFilter = unit.ordermarkers && unit.ordermarkers.some(marker => {
+						return normalize(marker) === normalize(orderMarkerValue);
+					});
+				}
+
+				let passesSpecialsFilter = true;
+				if (specialsValue !== '') {
+					const normalize = str => str.toLowerCase().replace(/\s\d+$/, ''); // Normalize by removing numbers
+					passesSpecialsFilter = unit.specials && unit.specials.some(special => {
+						const normalizedSpecialName = normalize(special.name);
+						return normalizedSpecialName === specialsValue;
+					});
+				}
+
+				return (
+					matchesSearch &&
+					matchesGeneral &&
+					matchesType &&
+					matchesPersonality &&
+					matchesWave &&
+					matchesRarity &&
+					passesOrderMarkerFilter &&
+					passesSpecialsFilter
+				);
+			});
+
+			// Sort units
+			filteredUnits.sort((a, b) => {
+				switch (sortByValue) {
+					case 'points':
+						return a.points - b.points;
+					case 'move':
+						return b.move - a.move;
+					case 'attack':
+						return b.attack - a.attack;
+					case 'defense':
+						return b.defense - a.defense;
+					case 'life':
+						return b.life - a.life;
+					case 'name':
+					default:
+						return a.name.localeCompare(b.name);
+				}
+			});
+
+			populateUnitList(filteredUnits); // Ensure the list is updated
+		}
+				
+        // Toggle unit selection
+        function toggleUnitSelection(listItem, unit) {
+            const unitId = parseInt(listItem.dataset.id);
+            
+            // Get current selection count
+            const currentQuantity = selectedUnits[unitId] || 0;
+            
+            // If not already selected, add one
+            if (currentQuantity === 0) {
+                selectedUnits[unitId] = 1;
+                listItem.classList.add('selected');
+            } 
+            // If already selected but under the available limit, add another
+            else if (currentQuantity < unit.numberAvailableInDraft) {
+                selectedUnits[unitId] = currentQuantity + 1;
+                
+                // Update the quantity display
+                let countSpan = listItem.querySelector('.unit-count');
+                if (!countSpan) {
+                    countSpan = document.createElement('span');
+                    countSpan.className = 'unit-count';
+                    listItem.appendChild(countSpan);
+                }
+                countSpan.textContent = selectedUnits[unitId];
+            } 
+            // If at max quantity, deselect completely
+            else {
+                delete selectedUnits[unitId];
+                listItem.classList.remove('selected');
+                
+                // Remove the quantity display
+                const countSpan = listItem.querySelector('.unit-count');
+                if (countSpan) {
+                    listItem.removeChild(countSpan);
+                }
+            }
+            
+            updateSelectedUnitsDisplay();
+            updateTotalPoints();
+        }
+        
+        // Find unit by name with various format checks
+        function findUnitByName(synergyName) {
+            // Format the synergy name consistently
+            const { name: formattedName, isCustom } = formatUnitName(synergyName);
+
+            // First try to find by exact formatted name
+            let unit = unitData.find(u => 
+                u.name === formattedName || 
+                u.originalName === synergyName
+            );
+
+            // If not found, try with base name (no SOTM)
+            if (!unit) {
+                const baseName = formattedName.replace(' (SOTM)', '');
+                unit = unitData.find(u => 
+                    u.name === baseName || 
+                    u.baseName === baseName
+                );
+            }
+
+            return unit;
+        }
+        
+        // Add a unit to selection by name
+        function addSynergyToSelection(synergyName) {
+            // Find the unit
+            const unit = findUnitByName(synergyName);
+            if (!unit) return false;
+            
+            // Check if it's already at max
+            const currentQuantity = selectedUnits[unit.id] || 0;
+            if (currentQuantity >= unit.numberAvailableInDraft) return false;
+            
+            // Add one to the selection
+            selectedUnits[unit.id] = currentQuantity + 1;
+            
+            // Update the UI
+            updateSelectedUnitsDisplay();
+            updateTotalPoints();
+            filterAndSortUnits();
+            
+            return true;
+        }
+        
+        // Update the total points display
+        function updateTotalPoints() {
+            let totalPoints = 0;
+            let totalUnitCount = 0;
+            
+            Object.entries(selectedUnits).forEach(([unitId, quantity]) => {
+                const unit = unitData.find(u => u.id === parseInt(unitId));
+                if (unit) {
+                    totalPoints += unit.points * quantity;
+                    totalUnitCount += quantity;
+                }
+            });
+            
+            totalPointsDisplay.textContent = `Total Army Points: ${totalPoints}`;
+            unitCountDisplay.textContent = `${totalUnitCount} units selected`;
+        }
+        
+        // Toggle the details section
+        function toggleUnitDetails(button, detailsSection) {
+            button.classList.toggle('collapsed');
+            detailsSection.classList.toggle('collapsed');
+            
+            const isCollapsed = detailsSection.classList.contains('collapsed');
+            button.innerHTML = `<span class="icon"></span> ${isCollapsed ? 'Expand' : 'Collapse'}`;
+        }
+        
+        // Check if a synergy matches the current unit (to avoid showing self-synergies)
+        function isMatchingUnit(unit, synergyName) {
+            const { name: formattedSynergyName } = formatUnitName(synergyName);
+            const baseUnitName = unit.name.replace(' (SOTM)', '');
+            const baseSynergyName = formattedSynergyName.replace(' (SOTM)', '');
+            
+            return (
+                unit.name === formattedSynergyName ||
+                unit.originalName === synergyName ||
+                baseUnitName === baseSynergyName
+            );
+        }
+        
+        // Setup image carousel for lightbox
+        function setupImageCarousel() {
+            // Get all image URLs and details from selected units
+            currentCarouselImages = Object.entries(selectedUnits)
+                .filter(([_, quantity]) => quantity > 0)
+                .flatMap(([unitId, quantity]) => {
+                    const unit = unitData.find(u => u.id === parseInt(unitId));
+                    if (unit) {
+						return Array(quantity).fill().map(() => {
+							const safeName = (unit.originalName || unit.name).replace(/"/g, "");
+							return {
+								imageUrl: `./cards/${safeName}.jpg`, // Always use cards for lightbox
+								name: unit.name,
+								isCustom: unit.isCustom,
+								unit: unit
+							};
+						});
+                    }
+                    return [];
+                });
+            
+            // Sort images by name
+            currentCarouselImages.sort((a, b) => a.name.localeCompare(b.name));
+        }
+        
+        // Update the carousel display
+        function updateCarouselDisplay() {
+            if (currentCarouselImages.length > 0) {
+                const current = currentCarouselImages[currentImageIndex];
+                
+                // Update image source
+                modalImage.src = current.imageUrl;
+                
+                // Update title with custom indicator if needed
+                modalTitle.innerHTML = current.isCustom 
+                    ? `<span class="custom-indicator"></span> ${current.name}` 
+                    : current.name;
+                
+                // Update counter
+                modalCounter.textContent = `${currentImageIndex + 1} / ${currentCarouselImages.length}`;
+                
+                // Show/hide navigation buttons
+                modalPrev.style.display = currentCarouselImages.length > 1 ? 'flex' : 'none';
+                modalNext.style.display = currentCarouselImages.length > 1 ? 'flex' : 'none';
+            }
+        }
+        
+        // Show image in modal carousel
+        function showImageCarousel(startImageUrl) {
+            // Setup the carousel
+            setupImageCarousel();
+            
+            // Find the starting image index
+            currentImageIndex = currentCarouselImages.findIndex(img => img.imageUrl === startImageUrl);
+            if (currentImageIndex === -1) currentImageIndex = 0;
+            
+            // Update display
+            updateCarouselDisplay();
+            
+            // Show modal
+            imageModal.style.display = 'block';
+        }
+        
+        // Update the carousel display
+        function updateCarouselDisplay() {
+            if (currentCarouselImages.length > 0) {
+                const current = currentCarouselImages[currentImageIndex];
+                
+                // Update image source
+                modalImage.src = current.imageUrl;
+                
+                // Update title with custom indicator if needed
+                modalTitle.innerHTML = current.isCustom 
+                    ? `<span class="custom-indicator"></span> ${current.name}` 
+                    : current.name;
+                
+                // Update counter
+                modalCounter.textContent = `${currentImageIndex + 1} / ${currentCarouselImages.length}`;
+                
+                // Show/hide navigation buttons
+                modalPrev.style.display = currentCarouselImages.length > 1 ? 'flex' : 'none';
+                modalNext.style.display = currentCarouselImages.length > 1 ? 'flex' : 'none';
+            }
+        }
+        
+        // Show image in modal carousel
+        function showImageCarousel(startImageUrl) {
+            // Setup the carousel
+            setupImageCarousel();
+            
+            // Find the starting image index
+            currentImageIndex = currentCarouselImages.findIndex(img => img.imageUrl === startImageUrl);
+            if (currentImageIndex === -1) currentImageIndex = 0;
+            
+            // Update display
+            updateCarouselDisplay();
+            
+            // Show modal
+            imageModal.style.display = 'block';
+        }
+        
+        // Navigate to previous image
+        function navigateToPreviousImage() {
+            if (currentCarouselImages.length <= 1) return;
+            
+            currentImageIndex--;
+            if (currentImageIndex < 0) {
+                currentImageIndex = currentCarouselImages.length - 1;
+            }
+            
+            updateCarouselDisplay();
+        }
+        
+        // Navigate to next image
+        function navigateToNextImage() {
+            if (currentCarouselImages.length <= 1) return;
+            
+            currentImageIndex++;
+            if (currentImageIndex >= currentCarouselImages.length) {
+                currentImageIndex = 0;
+            }
+            
+            updateCarouselDisplay();
+        }
+        
+        // Close the modal
+        function closeModal() {
+            imageModal.style.display = 'none';
+        }
+        
+        // Process synergy name for display
+        function processSynergyName(synergyName) {
+            // Format name similar to unit names
+            return formatUnitName(synergyName);
+        }
+        
+        // Get all valid synergies for a unit
+        function getValidSynergies(unit) {
+            const allSynergies = new Map();
+            
+            // Get synergies from the bidirectional map
+            if (bidirectionalSynergyMap.has(unit.name)) {
+                const synergies = bidirectionalSynergyMap.get(unit.name);
+                
+                synergies.forEach(synergyName => {
+                    // Skip if it's the same unit
+                    if (isMatchingUnit(unit, synergyName)) {
+                        return;
+                    }
+                    
+                    // Process the synergy name
+                    const processedSynergy = processSynergyName(synergyName);
+                    
+                    if (processedSynergy.name) {
+                        allSynergies.set(processedSynergy.name, {
+                            ...processedSynergy,
+                            originalName: synergyName
+                        });
+                    }
+                });
+            }
+            
+            // For each synergy, find the actual unit
+            const validSynergies = [];
+            allSynergies.forEach((synergy, synergyName) => {
+                const synergyUnit = findUnitByName(synergy.originalName);
+                if (synergyUnit && synergyUnit.numberAvailableInDraft > 0) {
+                    validSynergies.push({
+                        ...synergy,
+                        unit: synergyUnit
+                    });
+                }
+            });
+            
+            return validSynergies;
+        }
+        
+        // Update the selected units display
+        function updateSelectedUnitsDisplay() {
+            // Clear the container
+            selectedUnitsDiv.innerHTML = '';
+            
+            // Get the count of selected units
+            const selectedUnitCount = Object.values(selectedUnits).reduce((sum, quantity) => sum + quantity, 0);
+            
+            // Show message if no units selected
+            if (selectedUnitCount === 0) {
+                selectedUnitsDiv.innerHTML = '<p id="noSelectionMessage">No units selected. Click on units in the list to select them.</p>';
+                return;
+            }
+            
+            // Get the selected unit objects and sort by name
+            const selectedUnitEntries = Object.entries(selectedUnits)
+                .filter(([_, quantity]) => quantity > 0)
+                .map(([unitId, quantity]) => ({
+                    unit: unitData.find(u => u.id === parseInt(unitId)),
+                    quantity
+                }))
+                .sort((a, b) => a.unit.name.localeCompare(b.unit.name));
+            
+            // Create and append unit detail elements
+            selectedUnitEntries.forEach(({ unit, quantity }) => {
+                const unitDiv = document.createElement('div');
+                unitDiv.className = 'unit-detail';
+                unitDiv.dataset.id = unit.id;
+                
+                // Create the image element - use the original name for image lookup
+                const safeName = (unit.originalName || unit.name).replace(/"/g, "");
+                const thumbUrl = `./thumbs/${safeName}.jpg`;
+                const fullImageUrl = `./cards/${safeName}.jpg`;
+                
+                const imageDiv = document.createElement('div');
+                imageDiv.className = 'unit-image';
+                imageDiv.style.backgroundImage = `url('${thumbUrl}')`;
+                imageDiv.onclick = () => showImageCarousel(fullImageUrl);
+                
+                // Add quantity badge to image
+                if (quantity > 1) {
+                    const quantityBadge = document.createElement('div');
+                    quantityBadge.className = 'quantity-badge';
+                    quantityBadge.textContent = `×${quantity}`;
+                    imageDiv.appendChild(quantityBadge);
+                }
+                
+                // Create the info container
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'unit-info';
+                
+                // Get valid synergies
+                const validSynergies = getValidSynergies(unit);
+                
+                // Build special powers HTML
+                let specialsHtml = '';
+                if (unit.specials && unit.specials.length > 0) {
+                    specialsHtml = '<div class="special-powers"><h3>Special Powers</h3>';
+                    
+                    unit.specials.forEach(special => {
+                        specialsHtml += `
+                            <div class="special-power">
+                                <h4>${special.name}</h4>
+                                <p>${special.description}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    specialsHtml += '</div>';
+                }
+                
+                // Build synergies section if any exist
+                let synergiesHtml = '';
+                if (validSynergies.length > 0) {
+                    synergiesHtml = `
+                        <div class="synergies">
+                            <h3>Synergies</h3>
+                            <ul class="synergies-list">
+                                ${validSynergies.map(synergy => {
+                                    // Get the current quantity and max available for the synergy unit
+                                    const synergyCurrentQuantity = selectedUnits[synergy.unit.id] || 0;
+                                    const synergyMaxQuantity = synergy.unit.numberAvailableInDraft;
+                                    
+                                    // Create the synergy name with custom indicator if needed
+                                    let synergyNameHtml = synergy.name;
+                                    if (synergy.isCustom) {
+                                        synergyNameHtml = `<span class="custom-indicator"></span>${synergy.name}`;
+                                    }
+                                    
+                                    return `
+                                        <li>
+                                            <span class="synergy-name">
+                                                ${synergyNameHtml}
+                                                <span class="synergy-points">(${synergy.unit.points} pts)</span>
+                                            </span>
+                                            <button 
+                                                class="synergy-add-btn" 
+                                                data-id="${synergy.unit.id}"
+                                                ${synergyCurrentQuantity >= synergyMaxQuantity ? 'disabled' : ''}
+                                                title="${synergyCurrentQuantity >= synergyMaxQuantity ? 
+                                                    'Maximum quantity reached' : 
+                                                    `Add ${synergy.name} to your army`}">
+                                                +
+                                            </button>
+                                        </li>
+                                    `;
+                                }).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                // Create header with unit name and custom indicator if needed
+                const unitNameHtml = unit.isCustom 
+                    ? `<div class="unit-name"><span class="custom-indicator"></span>${unit.name}</div>` 
+                    : unit.name;
+                
+                // Create header with collapse/expand button
+                const unitHeader = document.createElement('h3');
+                unitHeader.innerHTML = `
+                    ${unitNameHtml}
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-id="${unit.id}">-</button>
+                        <span class="quantity-value">${quantity}</span>
+                        <button class="quantity-btn plus" data-id="${unit.id}" ${quantity >= unit.numberAvailableInDraft ? 'disabled' : ''}>+</button>
+                    </div>
+                `;
+                				
+                // Create basic info section
+                const basicInfoDiv = document.createElement('div');
+                basicInfoDiv.innerHTML = `
+                    <div>
+                        <!-- span class="badge ${unit.rarity}">${unit.rarity}</span -->
+                        <!-- span class="badge ${unit.category}">${unit.category}</span -->
+                        <span class="badge points-badge">${unit.points * quantity} pts</span>
+						${unit.ordermarkers && unit.ordermarkers.length > 0 ? 
+							unit.ordermarkers.map(marker => {
+								const normalized = marker.toLowerCase().replace(/[^a-z0-9]/g, '');
+								const markerTitle = markerTooltips[normalized] || '';
+								return `<span class="badge ordermarker ${marker}" title="${markerTitle}">${marker}</span>`;
+							}).join('') : ''}
+                    </div>
+                    <p class="unit-meta">
+                        ${unit.rarity.charAt(0).toUpperCase() + unit.rarity.slice(1).toLowerCase()} • ${unit.category} • ${unit.species} • ${unit.type} • ${unit.personality}<br>
+                        Size: ${unit.size} • Available: ${unit.numberAvailableInDraft}
+                    </p>
+                `;
+                
+                // Create the details section (stats and special powers)
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'unit-details collapsed';
+                detailsDiv.innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="value">${unit.life}</div>
+                            <div class="label">Life</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${unit.move}</div>
+                            <div class="label">Move</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${unit.range}</div>
+                            <div class="label">Range</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${unit.attack}</div>
+                            <div class="label">Attack</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${unit.defense}</div>
+                            <div class="label">Defense</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${unit.points}</div>
+                            <div class="label">Points</div>
+                        </div>
+                    </div>
+                    ${specialsHtml}
+                    ${synergiesHtml}
+                `;
+                
+                // Create toggle button
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'unit-details-toggle collapsed';
+                toggleButton.innerHTML = '<span class="icon"></span> Expand';
+                toggleButton.onclick = () => toggleUnitDetails(toggleButton, detailsDiv);
+                
+                // Add toggle button to basic info section
+                basicInfoDiv.appendChild(toggleButton);
+                
+                // Append everything to the info div
+                infoDiv.appendChild(unitHeader);
+                infoDiv.appendChild(basicInfoDiv);
+                infoDiv.appendChild(detailsDiv);
+                
+                // Append image and info to the unit detail
+                unitDiv.appendChild(imageDiv);
+                unitDiv.appendChild(infoDiv);
+                
+                // Add the complete unit detail to the container
+                selectedUnitsDiv.appendChild(unitDiv);
+            });
+            
+            // Add event listeners for the + and - buttons
+            document.querySelectorAll('.quantity-btn.minus').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    adjustUnitQuantity(parseInt(btn.dataset.id), -1);
+                });
+            });
+            
+            document.querySelectorAll('.quantity-btn.plus').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    adjustUnitQuantity(parseInt(btn.dataset.id), 1);
+                });
+            });
+            
+            // Add event listeners for synergy add buttons
+            document.querySelectorAll('.synergy-add-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const unitId = parseInt(btn.dataset.id);
+                    const unit = unitData.find(u => u.id === unitId);
+                    if (unit) {
+                        adjustUnitQuantity(unitId, 1);
+                    }
+                });
+            });
+        }
+        
+        // Adjust unit quantity
+        function adjustUnitQuantity(unitId, change) {
+            const unit = unitData.find(u => u.id === unitId);
+            if (!unit) return;
+            
+            const currentQuantity = selectedUnits[unitId] || 0;
+            const newQuantity = currentQuantity + change;
+            
+            // Validate the new quantity
+            if (newQuantity <= 0) {
+                delete selectedUnits[unitId];
+            } else if (newQuantity <= unit.numberAvailableInDraft) {
+                selectedUnits[unitId] = newQuantity;
+            } else {
+                return; // Don't exceed max available
+            }
+            
+            // Update UI
+            updateSelectedUnitsDisplay();
+            updateTotalPoints();
+            filterAndSortUnits(); // Refresh the main list to update selection indicators
+        }
+        
+        // Export the selected units to JSON
+        function exportSelection() {
+            if (Object.keys(selectedUnits).length === 0) {
+                alert("No units selected. Please select at least one unit to export.");
+                return;
+            }
+            
+            // Create an army object with selected units and quantities
+            const army = {
+                name: "My Heroscape Army",
+                totalPoints: 0,
+                units: []
+            };
+            
+            // Add each selected unit with its quantity
+            Object.entries(selectedUnits).forEach(([unitId, quantity]) => {
+                const unit = unitData.find(u => u.id === parseInt(unitId));
+                if (unit && quantity > 0) {
+                    const unitPoints = unit.points * quantity;
+                    army.totalPoints += unitPoints;
+                    
+                    army.units.push({
+                        name: unit.name,
+                        originalName: unit.originalName || unit.name, // For proper loading of images
+                        points: unit.points,
+                        quantity: quantity,
+                        totalPoints: unitPoints,
+                        general: unit.general,
+                        type: unit.type
+                    });
+                }
+            });
+            
+            // Sort units by name
+            army.units.sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Create JSON string
+            const jsonString = JSON.stringify(army, null, 2);
+            
+            // Create a blob and download link
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'heroscape-army.json';
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 0);
+        }
+        
+        // Import selection from JSON file
+        function importSelection(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const armyData = JSON.parse(e.target.result);
+                    
+                    // Clear current selection
+                    selectedUnits = {};
+                    
+                    // If the file has the expected format with units array
+                    if (armyData.units && Array.isArray(armyData.units)) {
+                        armyData.units.forEach(importedUnit => {
+                            // Try to find the unit in our data
+                            let unit = unitData.find(u => 
+                                u.name === importedUnit.name || 
+                                u.originalName === importedUnit.originalName
+                            );
+                            
+                            // If not found, try to find by removing any (SOTM) suffix
+                            if (!unit) {
+                                const baseName = importedUnit.name.replace(' (SOTM)', '');
+                                unit = unitData.find(u => u.name === baseName);
+                            }
+                            
+                            if (unit) {
+                                // Limit quantity to what's available in draft
+                                const quantity = Math.min(importedUnit.quantity, unit.numberAvailableInDraft);
+                                if (quantity > 0) {
+                                    selectedUnits[unit.id] = quantity;
+                                }
+                            }
+                        });
+                        
+                        // Update UI
+                        updateSelectedUnitsDisplay();
+                        updateTotalPoints();
+                        filterAndSortUnits();
+                        
+                        alert(`Import successful! Loaded ${Object.keys(selectedUnits).length} unit types.`);
+                    } else {
+                        throw new Error("Invalid army data format");
+                    }
+                } catch (error) {
+                    console.error("Error importing army:", error);
+                    alert(`Error importing army: ${error.message}`);
+                }
+            };
+            
+            reader.onerror = function() {
+                alert("Error reading file");
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Filter toggle
+            filterToggle.addEventListener('click', toggleFilter);
+            
+            // Buttons toggle for mobile
+            const buttonsToggle = document.getElementById('buttonsToggle');
+            const buttonsContainer = document.getElementById('buttonsContainer');
+            if (buttonsToggle && buttonsContainer) {
+                buttonsToggle.addEventListener('click', () => {
+                    buttonsToggle.classList.toggle('collapsed');
+                    buttonsContainer.classList.toggle('collapsed');
+                    
+                    // Update button text
+                    const isCollapsed = buttonsContainer.classList.contains('collapsed');
+                    buttonsToggle.innerHTML = `<span class="icon"></span> ${isCollapsed ? 'Show Actions' : 'Hide Actions'}`;
+                });
+            }
+            
+            // Filter and search inputs
+            searchInput.addEventListener('input', filterAndSortUnits);
+            generalFilter.addEventListener('change', filterAndSortUnits);
+            typeFilter.addEventListener('change', filterAndSortUnits);
+            personalityFilter.addEventListener('change', filterAndSortUnits);
+            waveFilter.addEventListener('change', filterAndSortUnits);
+            rarityFilter.addEventListener('change', filterAndSortUnits);
+            sortByFilter.addEventListener('change', filterAndSortUnits);
+			orderMarkerFilter.addEventListener('change', filterAndSortUnits);
+			specialsFilter.addEventListener('change', filterAndSortUnits);
+            
+            // Buttons
+            document.getElementById('selectAll').addEventListener('click', () => {
+                document.querySelectorAll('.unit-item').forEach(item => {
+                    if (item.dataset.id) {
+                        const unitId = parseInt(item.dataset.id);
+                        const unit = unitData.find(u => u.id === unitId);
+                        if (unit) {
+                            selectedUnits[unitId] = 1; // Select one of each visible unit
+                        }
+                    }
+                });
+                updateSelectedUnitsDisplay();
+                updateTotalPoints();
+                filterAndSortUnits();
+            });
+            
+            document.getElementById('deselectAll').addEventListener('click', () => {
+                selectedUnits = {};
+                updateSelectedUnitsDisplay();
+                updateTotalPoints();
+                filterAndSortUnits();
+            });
+            
+            document.getElementById('exportSelection').addEventListener('click', exportSelection);
+            
+            // Import button and file input
+            document.getElementById('importSelection').addEventListener('click', () => {
+                importFileInput.click();
+            });
+			
+			document.getElementById('resetFilters').addEventListener('click', resetFilters);
+            
+            importFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    importSelection(e.target.files[0]);
+                    // Reset the file input so the same file can be selected again
+                    e.target.value = '';
+                }
+            });
+            
+            // Modal event listeners
+            modalClose.addEventListener('click', closeModal);
+            modalPrev.addEventListener('click', navigateToPreviousImage);
+            modalNext.addEventListener('click', navigateToNextImage);
+            
+            window.addEventListener('click', (e) => {
+                if (e.target === imageModal) {
+                    closeModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+                // Left/right arrow keys for carousel navigation
+                if (imageModal.style.display === 'block') {
+                    if (e.key === 'ArrowLeft') {
+                        navigateToPreviousImage();
+                    } else if (e.key === 'ArrowRight') {
+                        navigateToNextImage();
+                    }
+                }
+            });
+            
+            // Listen for window resize to toggle filter visibility
+            window.addEventListener('resize', () => {
+                // If switching from mobile to desktop, ensure filters are visible
+                if (!isMobile() && searchFilter.classList.contains('collapsed')) {
+                    searchFilter.classList.remove('collapsed');
+                }
+                
+                // If switching to mobile, ensure filters are collapsed initially
+                if (isMobile() && !searchFilter.classList.contains('collapsed') && !filterToggle.classList.contains('collapsed')) {
+                    searchFilter.classList.add('collapsed');
+                    filterToggle.classList.add('collapsed');
+                }
+                
+                // Same for buttons toggle
+                if (!isMobile() && buttonsContainer.classList.contains('collapsed')) {
+                    buttonsContainer.classList.remove('collapsed');
+                }
+                
+                if (isMobile() && !buttonsContainer.classList.contains('collapsed') && !buttonsToggle.classList.contains('collapsed')) {
+                    buttonsContainer.classList.add('collapsed');
+                    buttonsToggle.classList.add('collapsed');
+                }
+            });
+        }
+        
+        // Initialize the application
+        async function initApp() {
+            try {
+                await loadUnitData();
+                if (processRawUnitData()) {
+                    updateFilterOptions();
+                    filterAndSortUnits();
+                    setupEventListeners();
+                    loadingMessage.style.display = 'none';
+                    
+                    // If on mobile, collapse the filter section and buttons by default
+                    if (isMobile()) {
+                        searchFilter.classList.add('collapsed');
+                        filterToggle.classList.add('collapsed');
+                        
+                        // Also collapse the buttons
+                        const buttonsToggle = document.getElementById('buttonsToggle');
+                        const buttonsContainer = document.getElementById('buttonsContainer');
+                        if (buttonsToggle && buttonsContainer) {
+                            buttonsToggle.classList.add('collapsed');
+                            buttonsContainer.classList.add('collapsed');
+                        }
+                    }
+                } else {
+                    // If there was an error or no data
+                    loadingMessage.style.display = 'none';
+                    if (!errorMessage.style.display || errorMessage.style.display === 'none') {
+                        showError("Failed to process unit data. Please check your data files.");
+                    }
+                }
+            } catch (error) {
+                showError(`Error loading unit data: ${error.message}`);
+            }
+        }
+        
+        // Load unit data from units.js and customs.js
+        function loadUnitData() {
+            return new Promise((resolve, reject) => {
+                // First load units.js
+                const unitsScript = document.createElement('script');
+                unitsScript.src = 'units.js';
+                unitsScript.onload = () => {
+                    console.log('units.js loaded successfully');
+                    
+                    // Then load customs.js to override any units
+                    const customsScript = document.createElement('script');
+                    customsScript.src = 'customs.js';
+                    customsScript.onload = () => {
+                        console.log('customs.js loaded successfully');
+                        resolve();
+                    };
+                    customsScript.onerror = () => {
+                        console.warn('customs.js failed to load - continuing with only units.js data');
+                        resolve(); // Still resolve since units.js was loaded
+                    };
+                    document.head.appendChild(customsScript);
+                };
+                unitsScript.onerror = () => {
+                    reject(new Error('Failed to load units.js'));
+                };
+                document.head.appendChild(unitsScript);
+            });
+        }
+        
+        // Call the initialization function when the document is ready
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
