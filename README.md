@@ -12,6 +12,7 @@ Functionalities:
 - Easily find synergies
 - Supports custom rectangular cards, such as https://github.com/drbo6/DrBo6s-Heroscape-Cards 
 - Import and export armies
+- Responsive enough to be usable on a phone. (It does work better on tablets and desktops.)
 - Compatible with the [The Surprisingly Tart HeroScape Draft Wizard](https://www.heroscapers.com/threads/the-surprisingly-tart-heroscape-draft-wizard.102/)
 
 You can see it in action at [https://drbo6.github.io/DrBo6s-Heroscape-Army-Builder/](https://drbo6.github.io/DrBo6s-Heroscape-Army-Builder/).
